@@ -9,11 +9,14 @@
   <main class="card">
     <div class="eyebrow">MV3 TOOLKIT</div>
     <h1>Export page offline</h1>
-    <p class="intro">Clean the current page, keep active CSS, download images, and package everything as a ZIP.</p>
-    <button id="export">Create offline ZIP</button>
+    <p class="intro">Choose a compact visual snapshot or a DOM/CSS-preserving export.</p>
+    <div class="actions">
+      <button id="visualExport" class="primary">Visual Screenshot ZIP</button>
+      <button id="cleanExport" class="secondary">Clean HTML/CSS ZIP</button>
+    </div>
     <div id="status" class="status" role="status">Ready for the current tab.</div>
     <div class="details"><span id="assetCount">0 assets</span><span id="size">—</span></div>
-    <p class="note">Some protected pages, cross-origin stylesheets, authenticated images, and browser-internal URLs cannot be downloaded by Chrome extensions.</p>
+    <p class="note">Visual mode reproduces the open viewport as a static design. It intentionally removes interaction and hidden page sections.</p>
   </main>
   <script src="jszip.min.js"></script>
   <script src="popup.js"></script>

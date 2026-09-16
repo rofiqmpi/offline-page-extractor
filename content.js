@@ -157,10 +157,24 @@
     return output.replace(/\s*\n\s*/g, '');
   }
 
+  function visualData() {
+    const visible = [...document.querySelectorAll('body *')].filter(isRenderedElement);
+    const text = visible.filter(el => el.children.length === 0 && el.textContent.trim()).slice(0, 80).map(el => ({
+      text: el.textContent.trim().replace(/\s+/g, ' ').slice(0, 240),
+      rect: el.getBoundingClientRect().toJSON(),
+      style: { color: getComputedStyle(el).color, fontSize: getComputedStyle(el).fontSize, fontWeight: getComputedStyle(el).fontWeight }
+    }));
+    return { width: innerWidth, height: innerHeight, background: getComputedStyle(document.body).backgroundColor, text };
+  }
+
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message?.type === 'COLLECT_PAGE') {
       try {
         const images = collectImages();
+        if (message.type === 'VISUAL_DATA') {
+          sendResponse({ ok: true, visual: visualData(), title: document.title || 'offline-page' });
+          return;
+        }
         sendResponse({ ok: true, html: cleanHtml(images), css: buildCss(), images, title: document.title || 'offline-page', url: location.href });
       }
       catch (error) { sendResponse({ ok: false, error: error.message }); }

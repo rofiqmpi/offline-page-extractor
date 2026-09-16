@@ -9,6 +9,7 @@ This folder contains a standalone **Manifest V3** extension for exporting the cu
 - Reads same-origin accessible stylesheets, keeps selectors that match the current DOM, recursively preserves matching media/supports blocks, and retains keyframes used by active computed animations.
 - Downloads only rendered page `<img>` elements and computed `background-image` assets into `images/`. Elements with `display:none`, `visibility:hidden`, zero size, or zero opacity are skipped, so hidden carousel and mobile fallback images are not exported.
 - Prunes hidden body subtrees, browser-injected `plasmo-csui` nodes, and excess whitespace from the exported HTML/CSS so the result is a compact page snapshot rather than the site's full hidden navigation tree.
+- Provides a **Visual Screenshot ZIP** mode that captures the open viewport as `screenshot.png` and creates a minimal, formatted static `index.html`/`style.css` without menus, sliders, JavaScript, or other interactions. The screenshot guarantees visual fidelity; the generated text overlay preserves visible text metadata.
 - Creates `index.html`, `style.css`, and `images/` inside a ZIP using the vendored JSZip library.
 
 ## Install locally
@@ -17,7 +18,7 @@ This folder contains a standalone **Manifest V3** extension for exporting the cu
 2. Open `chrome://extensions` in Chrome.
 3. Enable **Developer mode**.
 4. Click **Load unpacked** and select the cloned repository directory containing `manifest.json`.
-5. Open a normal website, click the extension icon, and click **Create offline ZIP**.
+5. Open a normal website, click the extension icon, and choose **Visual Screenshot ZIP** for a static visual clone or **Clean HTML/CSS ZIP** for the DOM-preserving export.
 
 The extension intentionally does not attempt to bypass browser security boundaries. Browser-internal pages such as `chrome://` and some protected or cross-origin assets cannot be read. Cross-origin stylesheets that do not expose CSS rules are skipped by Chrome's security model.
 
