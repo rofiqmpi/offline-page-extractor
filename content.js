@@ -78,9 +78,24 @@
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && rect.width > 0 && rect.height > 0;
   }
 
+  function hasRenderedContent(el) {
+    if (isRenderedElement(el)) return true;
+    return [...el.children].some(hasRenderedContent);
+  }
+
+  function pruneHiddenClone(original, clone) {
+    [...original.children].forEach((sourceChild, index) => {
+      const cloneChild = clone.children[index];
+      if (!cloneChild) return;
+      if (!hasRenderedContent(sourceChild)) cloneChild.remove();
+      else pruneHiddenClone(sourceChild, cloneChild);
+    });
+  }
+
   function cleanHtml(images) {
     const clone = document.documentElement.cloneNode(true);
-    clone.querySelectorAll('script,noscript,iframe,template,canvas,video,audio,source,track,meta,base,link:not([rel="stylesheet"])').forEach(el => el.remove());
+    clone.querySelectorAll('script,noscript,iframe,template,canvas,video,audio,source,track,meta,base,link:not([rel="stylesheet"]),plasmo-csui,[id^="plasmo-"]').forEach(el => el.remove());
+    if (document.body && clone.body) pruneHiddenClone(document.body, clone.body);
     clone.querySelectorAll('*').forEach(el => [...el.attributes].forEach(attr => {
       if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
     }));
@@ -92,6 +107,7 @@
       const title = document.title || 'Offline page';
       head.innerHTML = `<title>${escapeHtml(title)}</title><link rel="stylesheet" href="style.css">`;
     }
+    clone.body?.querySelectorAll('title,link[rel="stylesheet"]').forEach(el => el.remove());
     const imageByUrl = new Map(images.map(image => [image.url, image]));
     clone.querySelectorAll('img').forEach((img) => {
       const source = absoluteUrl(img.currentSrc || img.getAttribute('src') || img.getAttribute('data-src'));
@@ -100,7 +116,7 @@
       img.setAttribute('data-offline-name', asset ? asset.name : '');
       img.removeAttribute('srcset'); img.removeAttribute('sizes');
     });
-    return '<!doctype html>\n' + clone.outerHTML;
+    return '<!doctype html>\n' + clone.outerHTML.replace(/>\s+</g, '><').trim();
   }
 
   function escapeHtml(value) { return value.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
@@ -138,7 +154,7 @@
       const bg = getComputedStyle(el).backgroundImage;
       if (bg && bg !== 'none') { /* URLs are rewritten by the exporter. */ }
     });
-    return output;
+    return output.replace(/\s*\n\s*/g, '');
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

@@ -8,6 +8,7 @@ This folder contains a standalone **Manifest V3** extension for exporting the cu
 - Keeps the currently rendered page markup and writes a minimal `<head>` with the original title and `style.css`.
 - Reads same-origin accessible stylesheets, keeps selectors that match the current DOM, recursively preserves matching media/supports blocks, and retains keyframes used by active computed animations.
 - Downloads only rendered page `<img>` elements and computed `background-image` assets into `images/`. Elements with `display:none`, `visibility:hidden`, zero size, or zero opacity are skipped, so hidden carousel and mobile fallback images are not exported.
+- Prunes hidden body subtrees, browser-injected `plasmo-csui` nodes, and excess whitespace from the exported HTML/CSS so the result is a compact page snapshot rather than the site's full hidden navigation tree.
 - Creates `index.html`, `style.css`, and `images/` inside a ZIP using the vendored JSZip library.
 
 ## Install locally
