@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Offline Page Extractor",
+  "version": "1.0.0",
+  "description": "Extract the visible page into a clean offline HTML/CSS/images ZIP project.",
+  "permissions": ["activeTab", "scripting", "downloads"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Export this page offline",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
