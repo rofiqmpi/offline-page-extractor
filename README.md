@@ -7,7 +7,7 @@ This folder contains a standalone **Manifest V3** extension for exporting the cu
 - Removes scripts, inline event handlers, SEO/Open Graph metadata, tracking pixels, `noscript`, `iframe`, comments, and non-title head elements.
 - Keeps the currently rendered page markup and writes a minimal `<head>` with the original title and `style.css`.
 - Reads same-origin accessible stylesheets, keeps selectors that match the current DOM, recursively preserves matching media/supports blocks, and retains keyframes used by active computed animations.
-- Downloads page `<img>` elements and computed `background-image` assets into `images/`.
+- Downloads only rendered page `<img>` elements and computed `background-image` assets into `images/`. Elements with `display:none`, `visibility:hidden`, zero size, or zero opacity are skipped, so hidden carousel and mobile fallback images are not exported.
 - Creates `index.html`, `style.css`, and `images/` inside a ZIP using the vendored JSZip library.
 
 ## Install locally
@@ -15,7 +15,7 @@ This folder contains a standalone **Manifest V3** extension for exporting the cu
 1. Download or clone this repository.
 2. Open `chrome://extensions` in Chrome.
 3. Enable **Developer mode**.
-4. Click **Load unpacked** and select this `chrome-extension` directory.
+4. Click **Load unpacked** and select the cloned repository directory containing `manifest.json`.
 5. Open a normal website, click the extension icon, and click **Create offline ZIP**.
 
 The extension intentionally does not attempt to bypass browser security boundaries. Browser-internal pages such as `chrome://` and some protected or cross-origin assets cannot be read. Cross-origin stylesheets that do not expose CSS rules are skipped by Chrome's security model.

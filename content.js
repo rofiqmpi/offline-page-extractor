@@ -72,7 +72,13 @@
     return walk(cleaned);
   }
 
-  function cleanHtml() {
+  function isRenderedElement(el) {
+    const style = getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && rect.width > 0 && rect.height > 0;
+  }
+
+  function cleanHtml(images) {
     const clone = document.documentElement.cloneNode(true);
     clone.querySelectorAll('script,noscript,iframe,template,canvas,video,audio,source,track,meta,base,link:not([rel="stylesheet"])').forEach(el => el.remove());
     clone.querySelectorAll('*').forEach(el => [...el.attributes].forEach(attr => {
@@ -86,10 +92,12 @@
       const title = document.title || 'Offline page';
       head.innerHTML = `<title>${escapeHtml(title)}</title><link rel="stylesheet" href="style.css">`;
     }
-    clone.querySelectorAll('img').forEach((img, index) => {
+    const imageByUrl = new Map(images.map(image => [image.url, image]));
+    clone.querySelectorAll('img').forEach((img) => {
       const source = absoluteUrl(img.currentSrc || img.getAttribute('src') || img.getAttribute('data-src'));
-      img.setAttribute('data-offline-src', source || '');
-      img.setAttribute('data-offline-name', `img_${index + 1}${guessExtension(source)}`);
+      const asset = source ? imageByUrl.get(source) : null;
+      img.setAttribute('data-offline-src', asset ? source : '');
+      img.setAttribute('data-offline-name', asset ? asset.name : '');
       img.removeAttribute('srcset'); img.removeAttribute('sizes');
     });
     return '<!doctype html>\n' + clone.outerHTML;
@@ -100,16 +108,24 @@
 
   function collectImages() {
     const images = [];
-    document.querySelectorAll('img').forEach((img, index) => {
+    const seen = new Set();
+    document.querySelectorAll('img').forEach((img) => {
       const url = absoluteUrl(img.currentSrc || img.src || img.getAttribute('data-src'));
-      if (url && !url.startsWith('data:')) images.push({ url, name: `img_${index + 1}${guessExtension(url)}` });
+      if (isRenderedElement(img) && url && !url.startsWith('data:') && !seen.has(url)) {
+        seen.add(url);
+        images.push({ url, name: `img_${images.length + 1}${guessExtension(url)}` });
+      }
     });
     const cssUrls = [];
     document.querySelectorAll('*').forEach(el => {
+      if (!isRenderedElement(el)) return;
       const bg = getComputedStyle(el).backgroundImage;
-      [...bg.matchAll(/url\(["']?([^"')]+)["']?\)/g)].forEach(match => { const url = absoluteUrl(match[1]); if (url && !url.startsWith('data:')) cssUrls.push(url); });
+      [...bg.matchAll(/url\(["']?([^"')]+)["']?\)/g)].forEach(match => {
+        const url = absoluteUrl(match[1]);
+        if (url && !url.startsWith('data:') && !seen.has(url)) { seen.add(url); cssUrls.push(url); }
+      });
     });
-    [...new Set(cssUrls)].forEach((url, index) => images.push({ url, name: `bg_${index + 1}${guessExtension(url)}`, background: true }));
+    cssUrls.forEach((url, index) => images.push({ url, name: `bg_${index + 1}${guessExtension(url)}`, background: true }));
     return images;
   }
 
@@ -127,7 +143,10 @@
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message?.type === 'COLLECT_PAGE') {
-      try { sendResponse({ ok: true, html: cleanHtml(), css: buildCss(), images: collectImages(), title: document.title || 'offline-page', url: location.href }); }
+      try {
+        const images = collectImages();
+        sendResponse({ ok: true, html: cleanHtml(images), css: buildCss(), images, title: document.title || 'offline-page', url: location.href });
+      }
       catch (error) { sendResponse({ ok: false, error: error.message }); }
     }
     return true;
