@@ -1,31 +1,87 @@
-# Offline Page Extractor — Chrome Extension
+# Offline Page Extractor — Cross-Browser WebExtension
 
-This folder contains a standalone **Manifest V3** extension for exporting the current Chrome tab as a small offline project.
+A Manifest V3 WebExtension that exports the currently open page as a static offline project. It supports a compact **Visual Screenshot ZIP** mode and a DOM/CSS-preserving **Clean HTML/CSS ZIP** mode.
 
 ## Features
 
 - Removes scripts, inline event handlers, SEO/Open Graph metadata, tracking pixels, `noscript`, `iframe`, comments, and non-title head elements.
-- Keeps the currently rendered page markup and writes a minimal `<head>` with the original title and `style.css`.
-- Reads same-origin accessible stylesheets, keeps selectors that match the current DOM, recursively preserves matching media/supports blocks, and retains keyframes used by active computed animations.
-- Downloads only rendered page `<img>` elements and computed `background-image` assets into `images/`. Elements with `display:none`, `visibility:hidden`, zero size, or zero opacity are skipped, so hidden carousel and mobile fallback images are not exported.
-- Prunes hidden body subtrees, browser-injected `plasmo-csui` nodes, and excess whitespace from the exported HTML/CSS so the result is a compact page snapshot rather than the site's full hidden navigation tree.
-- Provides a **Visual Screenshot ZIP** mode that captures the open viewport as `screenshot.png` and creates a minimal, formatted static `index.html`/`style.css` without menus, sliders, JavaScript, or other interactions. The screenshot guarantees visual fidelity; the generated text overlay preserves visible text metadata.
-- Creates `index.html`, `style.css`, and `images/` inside a ZIP using the vendored JSZip library.
+- Downloads only rendered `<img>` and computed `background-image` assets. Hidden, zero-size, zero-opacity, and duplicate assets are skipped.
+- Prunes hidden body subtrees and browser-injected nodes.
+- **Visual Screenshot ZIP** captures the current viewport as `screenshot.png` and creates a small static `index.html`/`style.css` with no JavaScript or interactions.
+- **Clean HTML/CSS ZIP** preserves the visible DOM and matching CSS rules as far as browser security permits.
 
-## Install locally
+## Public repository
 
-1. Download or clone this repository.
-2. Open `chrome://extensions` in Chrome.
-3. Enable **Developer mode**.
-4. Click **Load unpacked** and select the cloned repository directory containing `manifest.json`.
-5. Open a normal website, click the extension icon, and choose **Visual Screenshot ZIP** for a static visual clone or **Clean HTML/CSS ZIP** for the DOM-preserving export.
+```text
+https://github.com/rofiqmpi/offline-page-extractor
+```
 
-The extension intentionally does not attempt to bypass browser security boundaries. Browser-internal pages such as `chrome://` and some protected or cross-origin assets cannot be read. Cross-origin stylesheets that do not expose CSS rules are skipped by Chrome's security model.
+## Browser support
+
+| Browser family | Manifest file | Loading method |
+|---|---|---|
+| Google Chrome | `manifest.json` | `chrome://extensions` → Developer mode → Load unpacked |
+| Microsoft Edge | `manifest.json` | `edge://extensions` → Developer mode → Load unpacked |
+| Brave, Vivaldi, Opera, Chromium | `manifest.json` | Their extensions page → Developer mode → Load unpacked |
+| Mozilla Firefox | `manifest.firefox.json` | `about:debugging` → This Firefox → Load Temporary Add-on |
+
+Chrome, Edge, Brave, Vivaldi, Opera, and Chromium use the standard `manifest.json`. Firefox uses `manifest.firefox.json` because Firefox's MV3 background-script format differs from Chromium's service-worker format.
+
+## Install from the public GitHub repository
+
+### Chromium browsers
+
+```bash
+git clone https://github.com/rofiqmpi/offline-page-extractor.git
+cd offline-page-extractor
+```
+
+Then open the browser's extensions page and load the repository directory containing `manifest.json`.
+
+For Chrome:
+
+```text
+chrome://extensions
+```
+
+For Edge:
+
+```text
+edge://extensions
+```
+
+Enable **Developer mode**, click **Load unpacked**, and select the cloned folder.
+
+### Firefox
+
+Clone the repository, open `about:debugging`, select **This Firefox**, click **Load Temporary Add-on**, and select `manifest.firefox.json`. Firefox temporary add-ons remain installed until Firefox is closed or the add-on is removed.
+
+## Run with commands
+
+The included launcher clones or updates the public repository and starts an available Chromium browser with the extension loaded:
+
+```bash
+bash run-extension.sh https://bangladesh.gov.bd/
+```
+
+The launcher supports `google-chrome`, `chromium`, `chromium-browser`, and `microsoft-edge` when installed. Firefox must be loaded through `about:debugging` because temporary Firefox add-ons use a different loading workflow.
+
+## Use the extension
+
+1. Open the target page and wait for it to finish loading.
+2. Close any modal, cookie notice, dropdown, or overlay that should not appear in the export.
+3. Click the extension icon.
+4. Choose **Visual Screenshot ZIP** for a compact static visual snapshot, or **Clean HTML/CSS ZIP** for the DOM-preserving export.
+5. Extract the ZIP and open `index.html` with VS Code Live Server or another local web server.
+
+The extension cannot bypass browser security boundaries. Browser-internal pages, protected resources, inaccessible cross-origin stylesheets, and authenticated images may be skipped.
 
 ## Files
 
-- `manifest.json` — MV3 permissions, popup, service worker, and content script registration.
-- `content.js` — page snapshot, HTML sanitation, selector matching, and asset discovery.
-- `popup.html`, `popup.css`, `popup.js` — user interface and ZIP export flow.
-- `background.js` — MV3 service worker bootstrap.
-- `jszip.min.js` — JSZip library bundle used for local ZIP generation.
+- `manifest.json` — Chromium MV3 manifest.
+- `manifest.firefox.json` — Firefox MV3-compatible manifest variant.
+- `content.js` — page snapshot, visible DOM pruning, selector matching, and asset discovery.
+- `popup.html`, `popup.css`, `popup.js` — export UI and ZIP generation.
+- `background.js` — extension background bootstrap.
+- `jszip.min.js` — locally vendored ZIP library.
+- `run-extension.sh` — command-line launcher for Chromium-family browsers.

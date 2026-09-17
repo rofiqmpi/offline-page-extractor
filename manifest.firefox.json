@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Offline Page Extractor",
+  "version": "1.0.0",
+  "description": "Export the current page as a clean offline HTML/CSS/images project.",
+  "permissions": ["activeTab", "scripting", "downloads"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "Export this page offline",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "offline-page-extractor@example.local",
+      "strict_min_version": "109.0"
+    }
+  }
+}
