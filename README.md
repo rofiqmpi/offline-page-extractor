@@ -32,8 +32,8 @@ Chrome, Edge, Brave, Vivaldi, Opera, and Chromium use the standard `manifest.jso
 ### Chromium browsers
 
 ```bash
-git clone https://github.com/rofiqmpi/offline-page-extractor.git
-cd offline-page-extractor
+git clone https://github.com/rofiqmpi/p2z.git
+cd p2z
 ```
 
 Then open the browser's extensions page and load the repository directory containing `manifest.json`.
@@ -88,8 +88,8 @@ This opens the browser on a blank tab. You can then open any website yourself an
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-irm https://raw.githubusercontent.com/rofiqmpi/offline-page-extractor/main/run-extension.ps1 -OutFile "$env:TEMP\run-offline-page-extractor.ps1"
-powershell -ExecutionPolicy Bypass -File "$env:TEMP\run-offline-page-extractor.ps1"
+irm https://raw.githubusercontent.com/rofiqmpi/p2z/main/run-extension.ps1 -OutFile "$env:TEMP\run-p2z.ps1"
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\run-p2z.ps1"
 ```
 
 The browser opens on a blank tab. Open any website in that browser, wait for it to finish loading, close unwanted overlays, click the extension icon, and choose **Visual Screenshot ZIP** or **Clean HTML/CSS ZIP**. To start directly on a known site:
