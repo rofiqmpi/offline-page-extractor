@@ -66,6 +66,24 @@ bash run-extension.sh https://bangladesh.gov.bd/
 
 The launcher supports `google-chrome`, `chromium`, `chromium-browser`, and `microsoft-edge` when installed. Firefox must be loaded through `about:debugging` because temporary Firefox add-ons use a different loading workflow.
 
+### Windows PowerShell
+
+The public repository includes `run-extension.ps1`. It clones or updates the extension, opens an isolated Chrome/Edge/Brave profile, and loads the extension automatically:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/rofiqmpi/offline-page-extractor/main/run-extension.ps1 -OutFile "$env:TEMP\run-offline-page-extractor.ps1"
+powershell -ExecutionPolicy Bypass -File "$env:TEMP\run-offline-page-extractor.ps1"
+```
+
+The browser opens on a blank tab. Open any website in that browser, wait for it to finish loading, close unwanted overlays, click the extension icon, and choose **Visual Screenshot ZIP** or **Clean HTML/CSS ZIP**. To start directly on a known site:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-extension.ps1 -TargetUrl "https://bangladesh.gov.bd/" -Mode Visual
+```
+
+The launcher deliberately does not download every page automatically. The export is started from the extension popup after you have opened and prepared the exact page you want, preventing accidental downloads while browsing.
+
 ## Use the extension
 
 1. Open the target page and wait for it to finish loading.
