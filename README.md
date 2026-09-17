@@ -7,8 +7,8 @@ A Manifest V3 WebExtension that exports the currently open page as a compact sta
 - Removes scripts, inline event handlers, SEO/Open Graph metadata, tracking pixels, `noscript`, `iframe`, comments, and non-title head elements.
 - Downloads only rendered `<img>` and computed `background-image` assets. Hidden, zero-size, zero-opacity, and duplicate assets are skipped.
 - Prunes hidden body subtrees and browser-injected nodes.
-- **Screenshot-only ZIP** captures exactly the current viewport as `screenshot.png` and creates only a small static `index.html`/`style.css` wrapper around that screenshot. It adds no hidden DOM, extra sections, inferred text, menus, sliders, or interactions. Rendered image assets detected in the viewport are also downloaded into `images/` for reference.
-- The ZIP contains only a small `index.html`, a small formatted `style.css`, the full-page `screenshot.png`, and rendered page assets under `images/`.
+- **Screenshot Design ZIP** reads the full-page screenshot geometry and visible content, then generates compact semantic `header`, `main`, `section`, `footer`, text, box, and image elements. It does not copy the site's hidden DOM, menus, scripts, or interactions. Rendered image assets are downloaded into `images/` and referenced by the generated HTML.
+- The ZIP contains a small formatted `index.html`, a small formatted `style.css`, and rendered page assets under `images/`.
 
 ## Public repository
 

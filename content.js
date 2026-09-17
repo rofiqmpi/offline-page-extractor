@@ -167,6 +167,22 @@
     return { width: innerWidth, height: innerHeight, background: getComputedStyle(document.body).backgroundColor, text };
   }
 
+  function visualElements() {
+    const elements = [];
+    document.querySelectorAll('body *').forEach(el => {
+      if (!isRenderedElement(el)) return;
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      const directText = [...el.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent.trim()).join(' ').replace(/\s+/g, ' ');
+      const image = el.tagName === 'IMG' ? absoluteUrl(el.currentSrc || el.src) : null;
+      const background = style.backgroundColor !== 'rgba(0, 0, 0, 0)' ? style.backgroundColor : '';
+      const useful = image || (el.children.length === 0 && directText) || (rect.width > 180 && rect.height > 50 && background);
+      if (!useful || rect.width < 2 || rect.height < 2) return;
+      elements.push({ tag: image ? 'img' : directText ? 'text' : 'box', text: directText.slice(0, 180), image, x: Math.round(rect.left), y: Math.round(rect.top + scrollY), width: Math.round(rect.width), height: Math.round(rect.height), color: style.color, background, fontSize: style.fontSize, fontWeight: style.fontWeight, radius: style.borderRadius });
+    });
+    return { width: Math.max(document.documentElement.scrollWidth, innerWidth), height: Math.max(document.documentElement.scrollHeight, innerHeight), elements };
+  }
+
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     try {
       if (message?.type === 'PAGE_METRICS') {
@@ -180,6 +196,10 @@
       }
       if (message?.type === 'VISUAL_DATA') {
         sendResponse({ ok: true, visual: visualData(), title: document.title || 'offline-page' });
+        return true;
+      }
+      if (message?.type === 'VISUAL_ELEMENTS') {
+        sendResponse({ ok: true, visual: visualElements(), title: document.title || 'offline-page' });
         return true;
       }
       if (message?.type === 'COLLECT_PAGE') {

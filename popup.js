@@ -34,10 +34,23 @@ async function downloadImages(images) {
   }
   return result;
 }
-function projectFiles(title, width, height) {
+function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function projectFiles(title, visual, assets) {
+  const assetMap = new Map(assets.map(({ image }) => [image.url, `images/${image.name}`]));
+  const headerEnd = Math.min(180, visual.height * .12); const footerStart = Math.max(headerEnd + 100, visual.height - 150);
+  const groups = { header: [], main: [], footer: [] };
+  const ordered = visual.elements.filter((element, index, all) => index < 220 && !(element.tag === 'box' && all.some(other => other !== element && other.tag !== 'box' && other.x >= element.x && other.y >= element.y && other.x + other.width <= element.x + element.width && other.y + other.height <= element.y + element.height))).sort((a, b) => (a.tag === 'box' ? -1 : 1) - (b.tag === 'box' ? -1 : 1));
+  ordered.forEach(element => { const group = element.y < headerEnd ? 'header' : element.y >= footerStart ? 'footer' : 'main'; groups[group].push(element); });
+  const render = element => {
+    const style = `left:${element.x}px;top:${element.y}px;width:${element.width}px;height:${element.height}px;color:${element.color};background:${element.background || 'transparent'};font-size:${element.fontSize};font-weight:${element.fontWeight};border-radius:${element.radius || '0'}`;
+    if (element.tag === 'img' && assetMap.has(element.image)) return `<img class="visual-image" src="${assetMap.get(element.image)}" alt="" style="${style}">`;
+    if (element.tag === 'text') return `<span class="visual-text" style="${style}">${escapeHtml(element.text)}</span>`;
+    return `<div class="visual-box" style="${style}"></div>`;
+  };
+  const section = (name, items) => `<section class="${name}">${items.map(render).join('')}</section>`;
   return {
-    html: `<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${title}</title>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <main class="screenshot-page">\n    <img src="screenshot.png" alt="Screenshot design">\n  </main>\n</body>\n</html>`,
-    css: `:root { --page-width: ${width}px; --page-height: ${height}px; }\n* { box-sizing: border-box; }\nhtml, body { margin: 0; background: #ffffff; }\n.screenshot-page { width: var(--page-width); min-height: var(--page-height); }\n.screenshot-page img { display: block; width: 100%; height: auto; }`
+    html: `<!doctype html>\n<html lang="bn">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${escapeHtml(title)}</title>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <div class="design-page">\n    <header>${section('header-layer', groups.header)}</header>\n    <main>${section('main-layer', groups.main)}</main>\n    <footer>${section('footer-layer', groups.footer)}</footer>\n  </div>\n</body>\n</html>`,
+    css: `* { box-sizing: border-box; }\nhtml, body { margin: 0; background: #ffffff; }\n.design-page { position: relative; width: ${visual.width}px; min-height: ${visual.height}px; overflow: hidden; }\n.design-page header, .design-page main, .design-page footer { position: absolute; inset: 0; width: 100%; height: 100%; }\n.header-layer, .main-layer, .footer-layer { position: absolute; inset: 0; width: 100%; height: 100%; }\n.visual-box, .visual-text, .visual-image { position: absolute; display: block; overflow: hidden; }\n.visual-text { white-space: nowrap; line-height: 1.2; }\n.visual-image { object-fit: cover; }`
   };
 }
 button.addEventListener('click', async () => {
@@ -47,8 +60,9 @@ button.addEventListener('click', async () => {
     const metrics = await ask(currentTab.id, 'PAGE_METRICS'); if (!metrics?.ok) throw new Error('Could not measure this page.');
     const page = await ask(currentTab.id, 'COLLECT_PAGE');
     const screenshot = await captureFullPage(currentTab, metrics);
+    setStatus('Building compact visual HTML/CSS…'); const visual = await ask(currentTab.id, 'VISUAL_ELEMENTS');
     setStatus('Saving visible page images…'); const assets = await downloadImages(page?.images || []);
-    const files = projectFiles(page?.title || 'Screenshot design', metrics.viewportWidth, metrics.height); const zip = new JSZip(); zip.file('index.html', files.html); zip.file('style.css', files.css); zip.file('screenshot.png', screenshot);
+    const files = projectFiles(page?.title || 'Screenshot design', visual.visual, assets); const zip = new JSZip(); zip.file('index.html', files.html); zip.file('style.css', files.css);
     assets.forEach(({ image, blob }) => zip.file(`images/${image.name}`, blob)); assetCount.textContent = `${assets.length} images`;
     setStatus('Creating compact ZIP…'); const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 9 } }); size.textContent = `${(blob.size / 1024).toFixed(1)} KB`;
     const url = URL.createObjectURL(blob); await chrome.downloads.download({ url, filename: `${safeName(page?.title)}-design.zip`, saveAs: true }); setStatus('Done — screenshot design ZIP downloaded.'); setTimeout(() => URL.revokeObjectURL(url), 30000);
