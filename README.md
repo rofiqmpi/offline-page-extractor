@@ -70,6 +70,14 @@ The launcher supports `google-chrome`, `chromium`, `chromium-browser`, and `micr
 
 The public repository includes `run-extension.ps1`. It clones or updates the extension, opens an isolated Chrome/Edge/Brave profile, and loads the extension automatically:
 
+**Short command:**
+
+```powershell
+iex (irm https://raw.githubusercontent.com/rofiqmpi/offline-page-extractor/main/run-extension.ps1)
+```
+
+This opens the browser on a blank tab. You can then open any website yourself and use the extension popup to export it.
+
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 irm https://raw.githubusercontent.com/rofiqmpi/offline-page-extractor/main/run-extension.ps1 -OutFile "$env:TEMP\run-offline-page-extractor.ps1"
