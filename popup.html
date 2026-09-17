@@ -2,21 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Offline Page Extractor</title>
+  <title>Screenshot Design Exporter</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <main class="card">
-    <div class="eyebrow">MV3 TOOLKIT</div>
-    <h1>Export page offline</h1>
-    <p class="intro">Export only what is visible in the current viewport as a static screenshot project.</p>
-    <div class="actions">
-      <button id="visualExport" class="primary">Screenshot-only ZIP</button>
-      <button id="cleanExport" class="secondary">Clean HTML/CSS ZIP</button>
-    </div>
+    <div class="eyebrow">STATIC DESIGN MODE</div>
+    <h1>Export screenshot design</h1>
+    <p class="intro">Creates a small offline design from exactly the current viewport. No hidden HTML, menus, scripts, or interactions are added.</p>
+    <button id="visualExport" class="primary">Create Screenshot Design ZIP</button>
     <div id="status" class="status" role="status">Ready for the current tab.</div>
-    <div class="details"><span id="assetCount">0 assets</span><span id="size">—</span></div>
-    <p class="note">Visual mode reproduces the open viewport as a static design. It intentionally removes interaction and hidden page sections.</p>
+    <div class="details"><span id="assetCount">0 images</span><span id="size">—</span></div>
+    <p class="note">Close popups and overlays before exporting. The screenshot is the visual source of truth.</p>
   </main>
   <script src="jszip.min.js"></script>
   <script src="popup.js"></script>

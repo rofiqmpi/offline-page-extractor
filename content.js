@@ -168,17 +168,27 @@
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.type === 'COLLECT_PAGE') {
-      try {
-        const images = collectImages();
-        if (message.type === 'VISUAL_DATA') {
-          sendResponse({ ok: true, visual: visualData(), title: document.title || 'offline-page' });
-          return;
-        }
-        sendResponse({ ok: true, html: cleanHtml(images), css: buildCss(), images, title: document.title || 'offline-page', url: location.href });
+    try {
+      if (message?.type === 'PAGE_METRICS') {
+        sendResponse({ ok: true, width: Math.max(document.documentElement.scrollWidth, innerWidth), height: Math.max(document.documentElement.scrollHeight, innerHeight), viewportWidth: innerWidth, viewportHeight: innerHeight, scrollY });
+        return true;
       }
-      catch (error) { sendResponse({ ok: false, error: error.message }); }
+      if (message?.type === 'SCROLL_TO') {
+        scrollTo(0, Math.max(0, Number(message.y) || 0));
+        sendResponse({ ok: true, y: scrollY });
+        return true;
+      }
+      if (message?.type === 'VISUAL_DATA') {
+        sendResponse({ ok: true, visual: visualData(), title: document.title || 'offline-page' });
+        return true;
+      }
+      if (message?.type === 'COLLECT_PAGE') {
+        const images = collectImages();
+        sendResponse({ ok: true, html: cleanHtml(images), css: buildCss(), images, title: document.title || 'offline-page', url: location.href });
+        return true;
+      }
     }
+    catch (error) { sendResponse({ ok: false, error: error.message }); }
     return true;
   });
 })();

@@ -1,6 +1,6 @@
 # Offline Page Extractor — Cross-Browser WebExtension
 
-A Manifest V3 WebExtension that exports the currently open page as a static offline project. It supports a compact **Screenshot-only ZIP** mode and a DOM/CSS-preserving **Clean HTML/CSS ZIP** mode.
+A Manifest V3 WebExtension that exports the currently open page as a compact static screenshot design.
 
 ## Features
 
@@ -8,7 +8,7 @@ A Manifest V3 WebExtension that exports the currently open page as a static offl
 - Downloads only rendered `<img>` and computed `background-image` assets. Hidden, zero-size, zero-opacity, and duplicate assets are skipped.
 - Prunes hidden body subtrees and browser-injected nodes.
 - **Screenshot-only ZIP** captures exactly the current viewport as `screenshot.png` and creates only a small static `index.html`/`style.css` wrapper around that screenshot. It adds no hidden DOM, extra sections, inferred text, menus, sliders, or interactions. Rendered image assets detected in the viewport are also downloaded into `images/` for reference.
-- **Clean HTML/CSS ZIP** preserves the visible DOM and matching CSS rules as far as browser security permits.
+- The ZIP contains only a small `index.html`, a small formatted `style.css`, the full-page `screenshot.png`, and rendered page assets under `images/`.
 
 ## Public repository
 
@@ -92,7 +92,7 @@ irm https://raw.githubusercontent.com/rofiqmpi/p2z/main/run-extension.ps1 -OutFi
 powershell -ExecutionPolicy Bypass -File "$env:TEMP\run-p2z.ps1"
 ```
 
-The browser opens on a blank tab. Open any website in that browser, wait for it to finish loading, close unwanted overlays, click the extension icon, and choose **Screenshot-only ZIP** or **Clean HTML/CSS ZIP**. To start directly on a known site:
+The browser opens on a blank tab. Open any website in that browser, wait for it to finish loading, close unwanted overlays, click the extension icon, and choose **Create Screenshot Design ZIP**. To start directly on a known site:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\run-extension.ps1 -TargetUrl "https://bangladesh.gov.bd/" -Mode Visual
@@ -105,7 +105,7 @@ The launcher deliberately does not download every page automatically. The export
 1. Open the target page and wait for it to finish loading.
 2. Close any modal, cookie notice, dropdown, or overlay that should not appear in the export.
 3. Click the extension icon.
-4. Choose **Screenshot-only ZIP** for an exact static viewport capture, or **Clean HTML/CSS ZIP** for the DOM-preserving export.
+4. Choose **Create Screenshot Design ZIP**.
 5. Extract the ZIP and open `index.html` with VS Code Live Server or another local web server.
 
 The extension cannot bypass browser security boundaries. Browser-internal pages, protected resources, inaccessible cross-origin stylesheets, and authenticated images may be skipped.
