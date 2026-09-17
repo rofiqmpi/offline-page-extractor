@@ -13,7 +13,7 @@ A Manifest V3 WebExtension that exports the currently open page as a static offl
 ## Public repository
 
 ```text
-https://github.com/rofiqmpi/offline-page-extractor
+https://github.com/rofiqmpi/p2z
 ```
 
 ## Browser support
@@ -72,11 +72,19 @@ The public repository includes `run-extension.ps1`. It clones or updates the ext
 
 **Short command:**
 
+For a genuinely short command, run this one-time setup command in PowerShell:
+
 ```powershell
-iex (irm https://raw.githubusercontent.com/rofiqmpi/offline-page-extractor/main/run-extension.ps1)
+irm https://raw.githubusercontent.com/rofiqmpi/p2z/main/run-extension.ps1 -OutFile "$HOME\p2z.ps1"; New-Item (Split-Path $PROFILE) -ItemType Directory -Force | Out-Null; Add-Content $PROFILE 'function p2z { powershell -ExecutionPolicy Bypass -File "$HOME\p2z.ps1" }'; . $PROFILE
 ```
 
-This opens the browser on a blank tab. You can then open any website yourself and use the extension popup to export it.
+After that, the permanent command is only:
+
+```powershell
+p2z
+```
+
+This opens the browser on a blank tab. You can then open any website yourself and use the extension popup to export it. PowerShell aliases normally last for the current session; to keep `p2z` after reopening PowerShell, add the setup line to your PowerShell profile.
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass

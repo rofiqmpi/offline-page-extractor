@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoUrl = "https://github.com/rofiqmpi/offline-page-extractor.git"
+$RepoUrl = "https://github.com/rofiqmpi/p2z.git"
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
   throw "Git was not found. Install Git for Windows first."
