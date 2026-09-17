@@ -26,10 +26,9 @@ function rewriteAssets(html, css, images, baseUrl) {
 function dataUrlToBlob(dataUrl) { const [meta, data] = dataUrl.split(','); const bytes = Uint8Array.from(atob(data), char => char.charCodeAt(0)); return new Blob([bytes], { type: meta.match(/:(.*?);/)[1] }); }
 function visualProject(data, screenshotPath) {
   const palette = data.visual.background || '#ffffff';
-  const textBlocks = data.visual.text.map((item, index) => `<span class="text t${index}" style="left:${Math.round(item.rect.left)}px;top:${Math.round(item.rect.top)}px;color:${item.style.color};font-size:${item.style.fontSize};font-weight:${item.style.fontWeight}">${item.text.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]))}</span>`).join('');
   return {
-    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${data.title}</title><link rel="stylesheet" href="style.css"></head><body><main class="visual-page"><img class="reference" src="${screenshotPath}" alt="Static visual snapshot">${textBlocks}</main></body></html>`,
-    css: `:root{--page-bg:${palette}}*{box-sizing:border-box}html,body{margin:0;min-width:${data.visual.width}px;min-height:${data.visual.height}px;background:var(--page-bg);font-family:Arial,sans-serif}.visual-page{position:relative;width:${data.visual.width}px;height:${data.visual.height}px;overflow:hidden;background:var(--page-bg)}.reference{display:block;width:100%;height:100%;object-fit:cover}.text{position:absolute;z-index:2;white-space:nowrap;pointer-events:none}`
+    html: `<!doctype html>\n<html lang="en">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>${data.title}</title>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <main class="visual-page">\n    <img class="reference" src="${screenshotPath}" alt="Static screenshot of the exported viewport">\n  </main>\n</body>\n</html>`,
+    css: `:root { --page-background: ${palette}; }\n* { box-sizing: border-box; }\nhtml, body { margin: 0; min-width: ${data.visual.width}px; min-height: ${data.visual.height}px; background: var(--page-background); }\n.visual-page { width: ${data.visual.width}px; height: ${data.visual.height}px; overflow: hidden; background: var(--page-background); }\n.reference { display: block; width: 100%; height: 100%; object-fit: cover; }`
   };
 }
 async function createCleanZip(tab) {
@@ -46,7 +45,18 @@ async function createVisualZip(tab) {
   setStatus('Capturing the open viewport screenshot…');
   const data = await collect(tab.id, 'VISUAL_DATA');
   const screenshot = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
-  const project = visualProject(data, 'screenshot.png'); const zip = new JSZip(); zip.file('index.html', project.html); zip.file('style.css', project.css); zip.file('screenshot.png', dataUrlToBlob(screenshot)); assetCount.textContent = `${data.visual.text.length} visible text blocks`; return { zip, title: data.title };
+  setStatus('Downloading images visible in the screenshot…');
+  const page = await collect(tab.id, 'COLLECT_PAGE');
+  const images = [...new Map((page.images || []).map(item => [item.url, item])).values()];
+  const downloaded = (await Promise.all(images.map(downloadImage))).filter(Boolean);
+  const project = visualProject(data, 'screenshot.png');
+  const zip = new JSZip();
+  zip.file('index.html', project.html);
+  zip.file('style.css', project.css);
+  zip.file('screenshot.png', dataUrlToBlob(screenshot));
+  downloaded.forEach(({ image, blob }) => zip.file(`images/${image.name}`, blob));
+  assetCount.textContent = `${downloaded.length} visible images`;
+  return { zip, title: data.title };
 }
 async function run(mode) {
   visualButton.disabled = true; cleanButton.disabled = true; size.textContent = '—';
